@@ -11,6 +11,7 @@ import decimal
 import json
 import logging
 import six
+from packaging import version
 
 try:
     import cPickle as pickle
@@ -129,9 +130,29 @@ class AwareJSONEncoder(json.JSONEncoder):
     TIME_FORMAT = "%H:%M:%S"
 
     def default(self, o):
-        from sqlalchemy.engine import ResultProxy, RowProxy
+        import sqlalchemy
         from sqlalchemy.ext.declarative import DeclarativeMeta
-        from sqlalchemy.util._collections import AbstractKeyedTuple
+        from sqlalchemy.engine import ResultProxy
+        sa_version = version.parse(sqlalchemy.__version__)
+
+        # Handling for SQLAlchemy versions before 1.4
+        if sa_version < version.parse("1.4"):
+            from sqlalchemy.engine import ResultProxy, RowProxy
+            from sqlalchemy.util._collections import AbstractKeyedTuple
+
+            if isinstance(o, RowProxy):
+                return dict(o)
+            elif isinstance(o, AbstractKeyedTuple):
+                return o._asdict()
+
+        # Handling for SQLAlchemy 1.4 and above
+        if sa_version >= version.parse("1.4"):
+            from sqlalchemy.engine import Row
+
+            if isinstance(o, Row):
+                return dict(o)
+            elif isinstance(o, tuple) and hasattr(o, '_fields'):  # namedtuple
+                return o._asdict()
 
         if isinstance(o, datetime.datetime):
             # d = datetime_safe.new_datetime(o)
@@ -146,10 +167,6 @@ class AwareJSONEncoder(json.JSONEncoder):
             return str(o)
         elif isinstance(o, ResultProxy):
             return list(o)
-        elif isinstance(o, RowProxy):
-            return dict(o)
-        elif isinstance(o, AbstractKeyedTuple):
-            return o._asdict()
         elif isinstance(o.__class__, DeclarativeMeta):
             fields = {}
             instance_dict = o.__dict__
