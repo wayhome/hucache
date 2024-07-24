@@ -7,6 +7,7 @@ A Declarative Caching Library for Human
 
 Construct from a redis conn
 ```
+>>> from hucache import CacheFactory
 >>> redis_client = fakeredis.FakeStrictRedis()
 >>> cache = CacheFactory.from_store_conn("redis", redis_client, prefix="test:")
 ```
