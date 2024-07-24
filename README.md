@@ -92,3 +92,11 @@ Or you can  change it per function
 ... def add(a, b, c=1):
 ...    return a + b + c
 ```
+
+### Change Serializer
+
+```
+Default serializer is json, you can change it with pickle
+
+>>> cache = CacheFactory.from_store_conn("redis", redis_client, format_type="PICKLE")
+```

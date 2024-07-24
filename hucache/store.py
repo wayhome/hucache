@@ -25,14 +25,14 @@ class AbstractStore(object):
 
 
 class RedisStore(AbstractStore):
-    def __init__(self, conn, serializer=Serializer(format="JSON")):
+    def __init__(self, conn, format_type="JSON"):
         self._conn = conn
-        self._serializer = serializer
+        self._serializer = Serializer(format_type=format_type)
 
     @staticmethod
-    def from_url(url):
+    def from_url(url, format_type="JSON"):
         conn = StrictRedis.from_url(url)
-        return RedisStore(conn)
+        return RedisStore(conn, format_type)
 
     def get(self, key, default=NOT_FOUND):
         data = self._conn.get(key)

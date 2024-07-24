@@ -65,6 +65,25 @@ True
 >>> Point = namedtuple('Point', 'id')
 >>> add_ref(Point(3), Point(4))
 8
+
+cache datetime
+
+>>> from datetime import datetime, timedelta
+>>> @cache("timesince:{a}")
+... def timesince(a):
+...    return datetime.now().replace(second=0, microsecond=0) + timedelta(hours=a)
+>>> timesince(1) == datetime.now().replace(second=0, microsecond=0) + timedelta(hours=1)
+True
+>>> timesince(1) == datetime.now().replace(second=0, microsecond=0) + timedelta(hours=1)
+False
+>>> cache2 = CacheFactory.from_store_conn("redis", redis_client, format_type="PICKLE")
+>>> @cache2("timesince:{a}")
+... def timesince(a):
+...    return datetime.now().replace(second=0, microsecond=0) + timedelta(hours=a)
+>>> timesince(2) == datetime.now().replace(second=0, microsecond=0) + timedelta(hours=2)
+True
+>>> timesince(2) == datetime.now().replace(second=0, microsecond=0) + timedelta(hours=2)
+True
 """
 import sys
 import types
@@ -140,18 +159,28 @@ class CacheFactory(object):
 
     @staticmethod
     def from_store_url(
-        store_type, store_url, prefix=None, default_timeout=DEFAULT_TIMEOUT
+        store_type,
+        store_url,
+        prefix=None,
+        format_type="JSON",
+        default_timeout=DEFAULT_TIMEOUT,
     ):
         if store_type == "redis":
-            store = RedisStore.from_url(store_url)
+            store = RedisStore.from_url(store_url, format_type)
             return CacheFactory(store, prefix, default_timeout).cache
         else:
             raise NotImplementedError
 
     @staticmethod
-    def from_store_conn(store_type, conn, prefix=None, default_timeout=DEFAULT_TIMEOUT):
+    def from_store_conn(
+        store_type,
+        conn,
+        prefix=None,
+        format_type="JSON",
+        default_timeout=DEFAULT_TIMEOUT,
+    ):
         if store_type == "redis":
-            store = RedisStore(conn)
+            store = RedisStore(conn, format_type)
             return CacheFactory(store, prefix, default_timeout).cache
         else:
             raise NotImplementedError

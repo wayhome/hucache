@@ -43,16 +43,16 @@ class Serializer:
 
     SUPPORTED_FORMATS = ["JSON", "PICKLE"]
 
-    def __init__(self, format: str = "JSON"):
+    def __init__(self, format_type: str = "JSON"):
         """
         Create a serialization handler.
 
         :param format: Specifies the format for this serialization handler (e.g., JSON, PICKLE).
         """
-        format = format.upper()
-        if format not in self.SUPPORTED_FORMATS:
+        format_type = format_type.upper()
+        if format_type not in self.SUPPORTED_FORMATS:
             raise ValueError("Unsupported serialization format")
-        self.format = format
+        self.format_type = format_type
 
     def load(self, stream: Union[str, bytes, Any]) -> Any:
         """
@@ -61,7 +61,7 @@ class Serializer:
         :param stream: The source to load data from. Can be a string, bytes, or file-like object.
         :return: Deserialized data.
         """
-        func_name = f"_from_{self.format.lower()}"
+        func_name = f"_from_{self.format_type.lower()}"
         return globals()[func_name](stream)
 
     def dump(self, data: Any) -> Union[str, bytes]:
@@ -71,7 +71,7 @@ class Serializer:
         :param data: The data to serialize. Usually a mapping or sequence type.
         :return: Serialized data as string or bytes.
         """
-        func_name = f"_to_{self.format.lower()}"
+        func_name = f"_to_{self.format_type.lower()}"
         return globals()[func_name](data)
 
     serialize = dump
