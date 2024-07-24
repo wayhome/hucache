@@ -3,14 +3,22 @@ A Declarative Caching Library for Human
 
 ## Usage
 
+### Construct a cache instance
+
+Construct from a redis conn
 ```
-Construct a cache instance
 >>> redis_client = fakeredis.FakeStrictRedis()
->>> cache = CacheFactory.from_store_conn("redis", redis_client)
+>>> cache = CacheFactory.from_store_conn("redis", redis_client, prefix="test:")
+```
+Construct from a redis url like "redis://xxxx"
+
+```
+>>> cache = CacheFactory.from_store_url("redis", redis_url, prefix="test:")
+```
 
 
-Use the cache on function
-
+### Use the cache on function
+```
 >>> @cache("add:{a}:{b}")
 ... def add(a, b, c=1):
 ...    return a + b + c
@@ -23,6 +31,7 @@ so the result will not change.
 7
 >>> add(3, b=3, c=2)
 7
+invalidate the cache
 >>> add.invalidate(3, 3)
 >>> add(3, b=3, c=2)
 8
@@ -35,9 +44,11 @@ You can use positional argument or keywords argument as you wish.
 24
 >>> mul(3, 4) == mul(3, c=2, b=4) == mul(c=2, a=3, b=4) == mul(3, 4, 2)
 True
+```
 
-Use the cache on class
+### Use the cache on class
 
+```
 >>> class Example(object):
 ...   def __init__(self, incr):
 ...       self.incr = incr
@@ -65,18 +76,18 @@ True
 >>> Point = namedtuple('Point', 'id')
 >>> add_ref(Point(3), Point(4))
 8
+```
 
-Custom timeout
+### Custom timeout
 
+```
 Default timeout is 1 hour, you can change  default timeout at the factory
 
->>> cache = CacheFactory.from_store_conn("redis", redis_client, prefix="test:", default_timeout=300)
+>>> cache = CacheFactory.from_store_conn("redis", redis_client, default_timeout=300)
 
 Or you can  change it per function
 
 >>> @cache("add:{a}:{b}", timeout=60)
 ... def add(a, b, c=1):
 ...    return a + b + c
-
-
 ```
